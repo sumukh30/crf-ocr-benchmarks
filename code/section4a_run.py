@@ -146,7 +146,7 @@ def main():
     loadcrfwords = try_import_loader()
 
     # The lab uses C=1000 in training (earlier section); 4a says fix C to best from previous section. [file:1][file:168]
-    C = 100
+    C = 1000
 
     train = loadcrfwords(str(ROOT / "data" / "train.txt"))
     test  = loadcrfwords(str(ROOT / "data" / "test.txt"))

@@ -131,7 +131,7 @@ def main():
     ROOT = Path(__file__).resolve().parents[1]
     loadcrfwords = try_import_loader()
 
-    C = 100
+    C = 1000
     S = args.S
     train = loadcrfwords(str(ROOT / "data" / "train.txt"))
     test  = loadcrfwords(str(ROOT / "data" / "test.txt"))

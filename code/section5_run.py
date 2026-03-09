@@ -135,8 +135,8 @@ def main():
     x_values = [0, 500, 1000, 1500, 2000]
 
     # Use the "best C" you found in Section 3 for each model.
-    C_crf = 100.0
-    C_svm = 100.0
+    C_crf = 1000.0
+    C_svm = 1000.0
 
     # ----- Precompute test letters once (test set is never distorted) -----
     Xte, yte0, test_lens = words_to_letters(test_words)
