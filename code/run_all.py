@@ -1,3 +1,5 @@
+#This file generates the answers for questions 1c, 2a and 2b
+
 import os
 import numpy as np
 import scipy.optimize as opt
@@ -35,7 +37,7 @@ def main():
     ensure_dir(result_dir)
 
     # ---------- (1) decode_output.txt ----------
-    # The PDF decode_input is one word with 100 letters plus parameters. [file:1]
+    # The PDF decode_input is one word with 100 letters plus parameters.      
     X100, Wd, Td = load_decode_input("../data/decode_input.txt", m=100)
     # def stats(name, A):
     #     A = np.asarray(A)
@@ -58,8 +60,8 @@ def main():
     train_words = load_crf_words("../data/train.txt")
     test_words = load_crf_words("../data/test.txt")
 
-    # ---------- (2) gradient.txt at model-5.txt ----------
-    # Required: average gradient of log p(y|X) over the training set, in model vector order. [file:1]
+    # ---------- (2) gradient.txt at model.txt ----------
+    # Required: average gradient of log p(y|X) over the training set, in model vector order.      
     Wm, Tm = load_model_params("../data/model.txt")
     sum_gW = np.zeros_like(Wm)
     sum_gT = np.zeros_like(Tm)
@@ -79,7 +81,7 @@ def main():
     print("gradient.txt written; avg logp =", (sum_logp / len(train_words)))
 
     # ---------- (3) solution.txt via LBFGS (fmin_tnc), C=1000 ----------
-    C = 1000.0  # specified in training section [file:1]
+    C = 1000.0  # specified in training section    1  
     x0 = np.zeros(128 * 26 + 26 * 26, dtype=float)
 
     def func(x):
@@ -90,10 +92,10 @@ def main():
     print("solution.txt written; nfeval =", nfeval, "rc =", rc)
 
     # ---------- (4) prediction.txt ----------
-    # Required: predicted label for each test letter in the same order as in test.txt. [file:1]
+    # Required: predicted label for each test letter in the same order as in test.txt.      
     Wopt, Topt = unpack_params(x_opt)
     yhat_words = decode_words(Wopt, Topt, test_words)
-    yhat_flat_1based = np.concatenate([yh + 1 for yh in yhat_words])
+    yhat_flat_1based = np.concatenate(  yh + 1 for yh in yhat_words  )
     write_int_lines(os.path.join(result_dir, "prediction.txt"), yhat_flat_1based)
     print("prediction.txt written; num test letters =", yhat_flat_1based.size)
 
