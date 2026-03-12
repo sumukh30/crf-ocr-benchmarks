@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# Script is for plotting section 3 figures by ingesting respective csv files
 import csv
 from pathlib import Path
 import matplotlib.pyplot as plt
@@ -6,7 +7,7 @@ import matplotlib.pyplot as plt
 ROOT = Path(__file__).resolve().parents[1]
 OUTD = ROOT / "result" / "section3"
 
-def read_csv(path: Path):
+def read_csv(path: Path): #reads csv files
     rows = []
     with path.open() as f:
         for r in csv.DictReader(f):

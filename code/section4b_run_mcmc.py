@@ -13,6 +13,10 @@ from section4_common import (
 )
 from section4_mcmc import logp_grad_word_mcmc
 
+# ---------------------------------------------------------
+# Compute objective and gradient using MCMC approximation
+# over the FULL dataset (used by L-BFGS)
+# ---------------------------------------------------------
 def objective_and_grad_mcmc_full(x, words, C, S, rb=False, seed=0):
     W, T = unpack_params(x)
     rng = np.random.default_rng(seed)
@@ -37,6 +41,9 @@ def objective_and_grad_mcmc_full(x, words, C, S, rb=False, seed=0):
     g = pack_params(gW_total, gT_total)
     return float(f_exact), g
 
+# ---------------------------------------------------------
+# Compute MCMC gradient using a MINI-BATCH (used by SGD)
+# ---------------------------------------------------------
 def objective_and_grad_mcmc_batch(x, batch, C, S, rb=False, seed=0):
     W, T = unpack_params(x)
     rng = np.random.default_rng(seed)
@@ -57,6 +64,9 @@ def objective_and_grad_mcmc_batch(x, batch, C, S, rb=False, seed=0):
     gT_total = -(C * avg_gT) + T
     return float(f_exact), pack_params(gW_total, gT_total)
 
+# ---------------------------------------------------------
+# Run Stochastic Gradient Descent with MCMC gradients
+# ---------------------------------------------------------
 def run_sgd_mcmc(train, test, C, S, B=20, lr=0.05, steps=400, eval_every=10, seed=0, momentum=0.0):
     rng = np.random.default_rng(seed)
     n = len(train)
@@ -78,7 +88,7 @@ def run_sgd_mcmc(train, test, C, S, B=20, lr=0.05, steps=400, eval_every=10, see
         if k == 1 or (k % eval_every) == 0:
             eff = (k * B) / n
             f_full, _ = objective_and_grad_exact(x, train, C)
-            W, T = unpack_params(x)
+            W, T = unpack_params(x)    # Compute test word-wise error
             te = wordwise_error(test, W, T)
             log.append((eff, f_full, te))
             tag = "MOM" if momentum > 0 else "SGD"
@@ -86,6 +96,9 @@ def run_sgd_mcmc(train, test, C, S, B=20, lr=0.05, steps=400, eval_every=10, see
 
     return x, log
 
+# ---------------------------------------------------------
+# Train model using L-BFGS optimizer
+# ---------------------------------------------------------
 def run_lbfgs_mcmc(train, test, C, S, maxfun=120):
     x0 = np.zeros(128 * 26 + 26 * 26, dtype=float)
     eval_count = {"n": 0}
@@ -112,6 +125,9 @@ def write_csv(path, header, rows):
         w.writerow(header)
         w.writerows(rows)
 
+# ---------------------------------------------------------
+# Plot comparison curves
+# ---------------------------------------------------------
 def plot_curves(path, curves, xlabel, ylabel, title):
     plt.figure()
     for name, xs, ys in curves:

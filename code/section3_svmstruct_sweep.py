@@ -1,4 +1,8 @@
 #!/usr/bin/env python3
+# Script to train and evaluate Structured SVM (SVM-HMM) models
+# for different regularization parameters C and report
+# letter-level and word-level accuracy.
+
 import sys, csv, subprocess
 from pathlib import Path
 
@@ -14,6 +18,7 @@ OUTD.mkdir(parents=True, exist_ok=True)
 TRAIN = DATA / "train_struct.txt"
 TEST  = DATA / "test_struct.txt"
 
+# Locate the SVM-HMM binaries inside third_party_tools
 def find_svmhmm_dir():
     base = ROOT / "third_party_tools"
     if (base / "svm_hmm").exists():
@@ -31,7 +36,10 @@ def run(cmd):
     p = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
     if p.returncode != 0:
         raise RuntimeError(p.stdout)
+    
 
+# Read true labels and query IDs (word identifiers) from dataset
+# Each query ID groups letters belonging to the same word
 def read_true_labels_and_qids(path: Path):
     y, q = [], []
     for line in path.read_text().splitlines():
@@ -43,6 +51,7 @@ def read_true_labels_and_qids(path: Path):
         q.append(int(toks[1].split(":")[1]))
     return y, q
 
+#read predicted labels
 def read_pred_labels(path: Path):
     y = []
     for line in path.read_text().splitlines():
@@ -52,6 +61,8 @@ def read_pred_labels(path: Path):
         y.append(int(s.split()[0]))
     return y
 
+# Compute letter-wise accuracy
+# Measures fraction of correctly predicted letters
 def letter_acc(y_true, y_pred):
     return sum(a == b for a, b in zip(y_true, y_pred)) / len(y_true)
 

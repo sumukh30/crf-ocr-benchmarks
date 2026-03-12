@@ -1,8 +1,18 @@
 import numpy as np
 
-ALPH = 26
-D = 128
+ALPH = 26 # number of possible labels (letters a-z)
+D = 128 # dimensionality of pixel feature vector
 
+"""
+    Attempt to import the dataset loader function.
+
+    The loader reads CRF word data and returns a list of word objects
+    containing:
+        - X : feature matrix (letters × features)
+        - y : label sequence
+
+    This wrapper ensures compatibility with different environments.
+    """
 def try_import_loader():
     try:
         from data_io import load_crf_words
@@ -11,6 +21,7 @@ def try_import_loader():
         from data_io import load_crf_words
         return load_crf_words
 
+#Extract feature matrix X from a word object.
 def get_X(word):
     if isinstance(word, dict):
         for k in ("X", "x", "pixels", "features"):
@@ -22,6 +33,7 @@ def get_X(word):
             return np.asarray(getattr(word, k))
     raise AttributeError("Word missing X/x attribute")
 
+#Extract label sequence y from the word object.
 def get_y(word):
     if isinstance(word, dict):
         for k in ("y", "Y", "label", "labels"):
@@ -33,6 +45,14 @@ def get_y(word):
             return np.asarray(getattr(word, k))
     raise AttributeError("Word missing y/Y attribute")
 
+"""
+    Flatten CRF parameters into a single vector.
+
+    W : emission weights (128 × 26)
+    T : transition weights (26 × 26)
+
+    Required for optimization routines such as L-BFGS.
+    """
 def normalize_labels(arr):
     arr = np.asarray(arr).reshape(-1)
     if arr.dtype.kind in ("U", "S", "O"):
@@ -48,12 +68,30 @@ def pack_params(W, T):
     return np.concatenate([W.reshape(-1), T.reshape(-1)])
 
 D, K = 128, 26
+
+"""
+    Convert flattened parameter vector back into matrices.
+
+    x → [W | T]
+
+    Returns:
+        W : emission weights
+        T : transition weights
+    """
 def unpack_params(x):
     x = np.asarray(x, dtype=np.float64)
     W = x[:D*K].reshape(D, K).copy()
     T = x[D*K:].reshape(K, K).copy()
     return W, T
 
+"""
+    Numerically stable computation of:
+
+        log(sum(exp(a)))
+
+    Used extensively in CRF forward-backward inference
+    to avoid floating point overflow.
+    """
 def logsumexp(a, axis=None):
     a = np.asarray(a)
     m = np.max(a, axis=axis, keepdims=True)
@@ -62,6 +100,18 @@ def logsumexp(a, axis=None):
         return float(out.reshape(()))
     return out.squeeze(axis)
 
+"""
+    Compute emission scores for each label at each position.
+
+    U[i, y] = score of assigning label y to letter i.
+
+    Computed as:
+        U = X @ W
+
+    X : (m × 128)
+    W : (128 × 26)
+    U : (m × 26)
+"""
 def node_scores(X, W):
     X = np.asarray(X, dtype=np.float64)
     W = np.asarray(W, dtype=np.float64)
@@ -76,7 +126,17 @@ def node_scores(X, W):
     #     "W", W.shape, "W[maxabs]=", float(np.max(np.abs(W))))
     return X @ W
 
+"""
+    Perform forward-backward inference for a linear-chain CRF.
 
+    Computes:
+        logZ    : log partition function
+        p_node  : marginal probability of each label
+        p_edge  : marginal probability of label transitions
+
+    U : emission scores
+    T : transition scores
+    """
 def forward_backward(U, T):
     # U: (m,26), T: (26,26)
     m = U.shape[0]

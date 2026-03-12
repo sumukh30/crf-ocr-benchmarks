@@ -10,10 +10,10 @@ sys.path.insert(0, str(ROOT))
 
 # --- LIBLINEAR high-level API import (two common layouts) ---
 try:
-    # Some setups expose liblinearutil as a top-level module. [web:280]
+    # Some setups expose liblinearutil as a top-level module. 
     from liblinearutil import train, predict
 except ModuleNotFoundError:
-    # Many installs expose it under the liblinear package. [web:205][web:280]
+    # Many installs expose it under the liblinear package. 
     from liblinear.liblinearutil import train, predict
 
 DATA = ROOT / "data"

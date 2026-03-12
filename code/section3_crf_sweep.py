@@ -9,7 +9,7 @@ CODE = ROOT / "code"
 sys.path.insert(0, str(CODE))
 sys.path.insert(0, str(ROOT))
 
-# If your loader file is named data_io.py, use data_io (not dataio).
+
 from data_io import load_crf_words
 from crf_impl import objective_and_grad, unpack_params, decode_words  # same as run_all.py style [file:168]
 

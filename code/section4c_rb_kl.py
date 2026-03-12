@@ -12,11 +12,21 @@ from section4_common import (
 )
 from section4_mcmc import mcmc_marginals
 
+# ---------------------------------------------------------
+# KL Divergence computation
+#
+# Computes KL(p || q) between two probability distributions
+# Small epsilon added for numerical stability
+# ---------------------------------------------------------
 def kl(p, q, eps=1e-12):
     p = np.clip(p, eps, 1.0)
     q = np.clip(q, eps, 1.0)
     return float(np.sum(p * np.log(p / q)))
 
+# ---------------------------------------------------------
+# Load model parameters from file
+# Returns flattened parameter vector
+# ---------------------------------------------------------
 def load_model_vec(path):
     v = np.loadtxt(path, dtype=float).reshape(-1)
     return v
@@ -34,6 +44,9 @@ def main():
     train = loadcrfwords(str(train_path))
     w0 = train[0]
 
+    # ---------------------------------------------------------
+    # Compute TRUE marginals using Forward-Backward
+    # ---------------------------------------------------------
     U = node_scores(get_X(w0), W)
     _, p_node_true, p_edge_true = forward_backward(U, T)
 
@@ -47,6 +60,9 @@ def main():
 
     rng = np.random.default_rng(0)
 
+    # ---------------------------------------------------------
+    # Evaluate KL divergence for increasing sample sizes
+    # ---------------------------------------------------------
     for S in xs:
         rng_h = np.random.default_rng(0)
         rng_r = np.random.default_rng(0)
@@ -62,7 +78,7 @@ def main():
         if S in (1, 5, 10, 50, 100, 200):
             print(f"S={S:>3} nodeKL(hard)={node_kl_hard[-1]:.3f} nodeKL(RB)={node_kl_rb[-1]:.3f}")
 
-    outd = ROOT / "result" / "section4"
+    outd = ROOT / "result" / "section4" #saving results
     outd.mkdir(parents=True, exist_ok=True)
 
     with open(outd / "4c_kl.csv", "w", newline="") as f:
